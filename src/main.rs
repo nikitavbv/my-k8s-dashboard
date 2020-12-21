@@ -1,9 +1,13 @@
+pub mod client;
+
 use kube::{Client, Resource};
 use kube_derive::CustomResource;
 use serde::{Deserialize, Serialize};
 use schemars::JsonSchema;
 
 use kube::api::{ListParams, ObjectList};
+
+use crate::client::connection::connect;
 
 #[derive(CustomResource, Serialize, Deserialize, Default, Clone, Debug, JsonSchema)]
 #[kube(
@@ -46,6 +50,8 @@ async fn main() {
     std::env::set_var("RUST_LOG", "debug,kube=debug");
     env_logger::init();
     println!("Hello, world!");
+
+    let client = connect();
 
     let client = Client::try_default().await.unwrap();
 
