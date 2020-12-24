@@ -12,7 +12,7 @@ async fn main() -> std::io::Result<()> {
     println!("Hello, world!");
 
     let client = KubernetesClient::new().await;
-    println!("res is {:?}", client.pod_metrics().await);
+    println!("res is {:?}", client.pods().await);
 
     HttpServer::new(|| App::new()
             .service(healthz)

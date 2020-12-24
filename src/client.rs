@@ -1,9 +1,29 @@
-use kube::Resource;
+use kube::{Resource, Api};
 use kube::api::{ListParams, ObjectList};
 use serde::{Deserialize, Serialize};
 use schemars::JsonSchema;
 use kube_derive::CustomResource;
 
+use k8s_openapi::api::core::v1::Pod as KubePod;
+
+// container requests and limits and metrics
+pub struct Container {
+    pub name: String,
+    pub pod: String,
+    pub namespace: String,
+
+    pub usage: PodContainerMetrics,
+    pub requests: PodContainerMetrics,
+    pub limits: PodContainerMetrics,
+}
+
+#[derive(Deserialize, Debug, Clone)]
+pub struct PodContainerMetrics {
+    pub cpu: String,
+    pub memory: String,
+}
+
+// pod metrics - kube api
 #[derive(CustomResource, Serialize, Deserialize, Default, Clone, Debug, JsonSchema)]
 #[kube(
     group = "metrics.k8s.io",
@@ -31,15 +51,10 @@ pub struct PodMetricsMetadata {
 #[derive(Deserialize, Debug, Clone)]
 pub struct PodMetricsContainer {
     pub name: String,
-    pub usage: PodMetricsContainerUsage,
+    pub usage: PodContainerMetrics,
 }
 
-#[derive(Deserialize, Debug, Clone)]
-pub struct PodMetricsContainerUsage {
-    pub cpu: String,
-    pub memory: String,
-}
-
+// kube client
 pub struct KubernetesClient {
     client: kube::Client
 }
@@ -52,7 +67,12 @@ impl KubernetesClient {
         }
     }
 
-    pub async fn pod_metrics(&self) -> Vec<PodMetrics> {
+    pub async fn pods(&self) -> Vec<KubePod> {
+        let pod_api: Api<KubePod> = Api::all(self.client.clone());
+        pod_api.list(&ListParams::default()).await.unwrap().items
+    }
+
+    pub async fn container_metrics(&self) -> Vec<PodMetrics> {
         // note: this is a hack, I hope to change it to something better once I have better understanding of kube client
         let resource = Resource::all::<Pod>();
         let req = resource.list(&ListParams::default()).unwrap();
