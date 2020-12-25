@@ -1,5 +1,6 @@
 mod client;
 mod config;
+mod usage;
 
 use actix_web::{App, HttpServer, Responder, get};
 use crate::client::KubernetesClient;
@@ -12,7 +13,7 @@ async fn main() -> std::io::Result<()> {
     println!("Hello, world!");
 
     let client = KubernetesClient::new().await;
-    println!("res is {:?}", client.pods().await);
+    println!("res is {:?}", client.container_resources().await);
 
     HttpServer::new(|| App::new()
             .service(healthz)
