@@ -51,7 +51,16 @@ impl KubernetesClient {
         let pods = &self.pods().await;
         let pod_metrics = &self.container_metrics().await;
 
-        Vec::new()
+        let namespaces = pods.iter()
+            .map(|v| v.metadata.namespace.clone().unwrap_or("".to_string()))
+            .chain(pod_metrics.iter().map(|v| v.metadata.namespace.clone()))
+            .map(|name| Namespace {
+                name,
+                pods: Vec::new()
+            })
+            .collect();
+
+        namespaces
     }
 
     async fn pods(&self) -> Vec<KubePod> {
