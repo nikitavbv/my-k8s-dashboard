@@ -48,19 +48,48 @@ impl KubernetesClient {
     }
 
     pub async fn container_resources(&self) -> Vec<Namespace> {
-        let pods = &self.pods().await;
-        let pod_metrics = &self.container_metrics().await;
+        let resources = self.pods().await;
+        let usage = self.container_metrics().await;
 
-        let namespaces = pods.iter()
+        let namespaces: Vec<Namespace> = resources.iter()
             .map(|v| v.metadata.namespace.clone().unwrap_or("".to_string()))
-            .chain(pod_metrics.iter().map(|v| v.metadata.namespace.clone()))
+            .chain(usage.iter().map(|v| v.metadata.namespace.clone()))
             .map(|name| Namespace {
                 name,
                 pods: Vec::new()
             })
             .collect();
 
+        let namespaces: Vec<Namespace> = namespaces.iter()
+            .map(|namespace| Namespace {
+                name: namespace.name.clone(),
+                pods: Self::combine_resources_and_usage(
+                    &Self::filter_resources_by_namespace(&resources, &namespace.name),
+                    &Self::filter_usage_by_namespace(&usage, &namespace.name)
+                )
+            })
+            .collect();
+
         namespaces
+    }
+
+    fn filter_resources_by_namespace(resources: &Vec<KubePod>, namespace: &str) -> Vec<KubePod> {
+        resources.iter()
+            .filter(|v| &v.metadata.namespace.clone().unwrap_or("".to_string()) == namespace)
+            .map(|v| v.clone())
+            .collect()
+    }
+
+    fn filter_usage_by_namespace(usage: &Vec<PodMetrics>, namespace: &str) -> Vec<PodMetrics> {
+        usage.iter()
+            .filter(|v| &v.metadata.namespace == namespace)
+            .map(|v| v.clone())
+            .collect()
+    }
+
+    fn combine_resources_and_usage(resources: &Vec<KubePod>, usage: &Vec<PodMetrics>) -> Vec<Pod> {
+        // TODO: finish this
+        Vec::new()
     }
 
     async fn pods(&self) -> Vec<KubePod> {
