@@ -2,9 +2,10 @@ use kube::{Resource, Api};
 use kube::api::{ListParams, ObjectList};
 use serde::{Deserialize, Serialize};
 
-use k8s_openapi::api::core::v1::Pod as KubePod;
+use k8s_openapi::api::core::v1::Pod as KubeAPIPod;
+use k8s_openapi::api::core::v1::Container as KubeAPIContainer;
 
-use crate::usage::{PodMetrics, pod_metrics};
+use crate::usage::{PodMetrics, pod_metrics, PodMetricsContainer};
 
 // container requests and limits and metrics
 #[derive(Debug)]
@@ -63,7 +64,7 @@ impl KubernetesClient {
         let namespaces: Vec<Namespace> = namespaces.iter()
             .map(|namespace| Namespace {
                 name: namespace.name.clone(),
-                pods: Self::combine_resources_and_usage(
+                pods: Self::combine_pod_resources_and_usage(
                     &Self::filter_resources_by_namespace(&resources, &namespace.name),
                     &Self::filter_usage_by_namespace(&usage, &namespace.name)
                 )
@@ -73,7 +74,7 @@ impl KubernetesClient {
         namespaces
     }
 
-    fn filter_resources_by_namespace(resources: &Vec<KubePod>, namespace: &str) -> Vec<KubePod> {
+    fn filter_resources_by_namespace(resources: &Vec<KubeAPIPod>, namespace: &str) -> Vec<KubeAPIPod> {
         resources.iter()
             .filter(|v| &v.metadata.namespace.clone().unwrap_or("".to_string()) == namespace)
             .map(|v| v.clone())
@@ -87,21 +88,49 @@ impl KubernetesClient {
             .collect()
     }
 
-    fn combine_resources_and_usage(resources: &Vec<KubePod>, usage: &Vec<PodMetrics>) -> Vec<Pod> {
+    fn combine_pod_resources_and_usage(resources: &Vec<KubeAPIPod>, usage: &Vec<PodMetrics>) -> Vec<Pod> {
+        let resources_containers: Vec<KubeAPIContainer> = resources.iter()
+            .filter_map(|v| v.spec.clone().map(|v| v.containers))
+            .flat_map(|v| v)
+            .map(|v| v.clone())
+            .collect();
+        let usage_containers: Vec<PodMetricsContainer> = usage.iter()
+            .flat_map(|v| v.containers.iter())
+            .map(|v| v.clone())
+            .collect();
+
         let pods = resources.iter()
             .filter_map(|v| v.metadata.name.clone())
             .chain(usage.iter().map(|v| v.metadata.name.clone()))
             .map(|name| Pod {
-                name,
-                containers: Vec::new(),
+                name: name.clone(),
+                containers: Self::combine_container_resources_and_usage(
+                    &Self::filter_resources_containers_by_pod(&resources_containers, &name),
+                    &Self::filter_usage_containers_by_pod(&usage_containers, &name)
+                )
             })
             .collect();
 
         pods
     }
 
-    async fn pods(&self) -> Vec<KubePod> {
-        let pod_api: Api<KubePod> = Api::all(self.client.clone());
+    fn filter_resources_containers_by_pod(containers: &Vec<KubeAPIContainer>, pod: &str) -> Vec<KubeAPIContainer> {
+        // TODO: implement this
+        containers.clone()
+    }
+
+    fn filter_usage_containers_by_pod(containers: &Vec<PodMetricsContainer>, pod: &str) -> Vec<PodMetricsContainer> {
+        // TODO: implement this
+        containers.clone()
+    }
+
+    fn combine_container_resources_and_usage(resources: &Vec<KubeAPIContainer>, usage: &Vec<PodMetricsContainer>) -> Vec<Container> {
+        // TODO: implement this
+        Vec::new()
+    }
+
+    async fn pods(&self) -> Vec<KubeAPIPod> {
+        let pod_api: Api<KubeAPIPod> = Api::all(self.client.clone());
         pod_api.list(&ListParams::default()).await.unwrap().items
     }
 
