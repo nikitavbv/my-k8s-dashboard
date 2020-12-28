@@ -88,8 +88,16 @@ impl KubernetesClient {
     }
 
     fn combine_resources_and_usage(resources: &Vec<KubePod>, usage: &Vec<PodMetrics>) -> Vec<Pod> {
-        // TODO: finish this
-        Vec::new()
+        let pods = resources.iter()
+            .filter_map(|v| v.metadata.name.clone())
+            .chain(usage.iter().map(|v| v.metadata.name.clone()))
+            .map(|name| Pod {
+                name,
+                containers: Vec::new(),
+            })
+            .collect();
+
+        pods
     }
 
     async fn pods(&self) -> Vec<KubePod> {
