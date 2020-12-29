@@ -89,9 +89,9 @@ impl KubernetesClient {
     }
 
     fn combine_pod_resources_and_usage(resources: &Vec<KubeAPIPod>, usage: &Vec<PodMetrics>) -> Vec<Pod> {
-        let resources_containers: Vec<KubeAPIContainer> = resources.iter()
-            .filter_map(|v| v.spec.clone().map(|v| v.containers))
-            .flat_map(|v| v)
+        let resources_containers: Vec<(String, KubeAPIContainer)> = resources.iter()
+            .filter_map(|v| v.spec.clone().map(|s| (v.metadata.name.clone().unwrap_or("".to_string()), s.containers)))
+            .flat_map(|v| v.clone().1.iter().map(|s| (v.0.clone(), s.clone())).collect::<Vec<(String, KubeAPIContainer)>>())
             .map(|v| v.clone())
             .collect();
         let usage_containers: Vec<PodMetricsContainer> = usage.iter()
@@ -114,9 +114,11 @@ impl KubernetesClient {
         pods
     }
 
-    fn filter_resources_containers_by_pod(containers: &Vec<KubeAPIContainer>, pod: &str) -> Vec<KubeAPIContainer> {
-        // TODO: implement this
-        containers.clone()
+    fn filter_resources_containers_by_pod(containers: &Vec<(String, KubeAPIContainer)>, pod: &str) -> Vec<KubeAPIContainer> {
+        containers.iter()
+            .filter(|v| v.0 == pod)
+            .map(|v| v.1.clone())
+            .collect()
     }
 
     fn filter_usage_containers_by_pod(containers: &Vec<PodMetricsContainer>, pod: &str) -> Vec<PodMetricsContainer> {
