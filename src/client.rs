@@ -94,8 +94,8 @@ impl KubernetesClient {
             .flat_map(|v| v.clone().1.iter().map(|s| (v.0.clone(), s.clone())).collect::<Vec<(String, KubeAPIContainer)>>())
             .map(|v| v.clone())
             .collect();
-        let usage_containers: Vec<PodMetricsContainer> = usage.iter()
-            .flat_map(|v| v.containers.iter())
+        let usage_containers: Vec<(String, PodMetricsContainer)> = usage.iter()
+            .flat_map(|v| v.containers.iter().map(|c| (v.metadata.name.clone(), c.clone())).collect::<Vec<(String, PodMetricsContainer)>>())
             .map(|v| v.clone())
             .collect();
 
@@ -121,9 +121,11 @@ impl KubernetesClient {
             .collect()
     }
 
-    fn filter_usage_containers_by_pod(containers: &Vec<PodMetricsContainer>, pod: &str) -> Vec<PodMetricsContainer> {
-        // TODO: implement this
-        containers.clone()
+    fn filter_usage_containers_by_pod(containers: &Vec<(String, PodMetricsContainer)>, pod: &str) -> Vec<PodMetricsContainer> {
+        containers.iter()
+            .filter(|v| v.0 == pod)
+            .map(|v| v.1.clone())
+            .collect()
     }
 
     fn combine_container_resources_and_usage(resources: &Vec<KubeAPIContainer>, usage: &Vec<PodMetricsContainer>) -> Vec<Container> {
