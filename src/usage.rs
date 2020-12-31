@@ -5,8 +5,6 @@ use kube::api::{ListParams, ObjectList};
 use schemars::JsonSchema;
 use kube_derive::CustomResource;
 
-use crate::client::PodContainerMetrics;
-
 // pod metrics - kube api
 #[derive(CustomResource, Serialize, Deserialize, Default, Clone, Debug, JsonSchema)]
 #[kube(
@@ -36,6 +34,12 @@ pub struct PodMetricsMetadata {
 pub struct PodMetricsContainer {
     pub name: String,
     pub usage: PodContainerMetrics,
+}
+
+#[derive(Deserialize, Debug, Clone)]
+pub struct PodContainerMetrics {
+    pub cpu: String,
+    pub memory: String,
 }
 
 pub async fn pod_metrics(client: &kube::Client) -> Vec<PodMetrics> {
