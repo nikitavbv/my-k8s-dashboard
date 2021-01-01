@@ -13,6 +13,7 @@ async fn main() -> std::io::Result<()> {
     println!("Hello, world!");
 
     let client = KubernetesClient::new().await;
+    client.container_resources().await;
     println!("res is {:?}", client.container_resources().await);
 
     HttpServer::new(|| App::new()

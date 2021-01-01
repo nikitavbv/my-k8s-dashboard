@@ -170,13 +170,49 @@ impl KubernetesClient {
     }
 
     fn parse_cpu_usage(cpu: &str) -> u64 {
-        println!("cpu usage: {}", cpu);
-        0
+        if cpu == "0" {
+            return 0
+        } else if cpu.ends_with("n") {
+            cpu.replace("n", "").parse().expect("failed to parse cpu usage in nanocpus")
+        } else if cpu.ends_with("u") {
+            Self::cpu_micros_to_nanos(cpu.replace("u", "").parse().expect("failed to parse cpu usage in microcpus"))
+        } else if cpu.ends_with("m") {
+            Self::cpu_millis_to_nanos(cpu.replace("m", "").parse().expect("failed to parse cpu usage in millicpus"))
+        } else {
+            // panic is bad, but it is ok for now
+            panic!("can't parse cpu usage: {}", cpu);
+            0
+        }
     }
 
     fn parse_memory_usage(memory: &str) -> u64 {
-        println!("memory usage: {}", memory);
-        0
+        if memory.ends_with("Ki") {
+            memory.replace("Ki", "").parse().expect("failed to parse memory in Ki")
+        } else if memory.ends_with("M") {
+            Self::mebibyte_to_kilobyte(memory.replace("M", "").parse().expect("failed to parse memory in M"))
+        } else if memory.ends_with("Mi") {
+            Self::megabyte_to_kilobyte(memory.replace("Mi", "").parse().expect("failed to parse memory usage in Mi"))
+        } else {
+            // panic is bad, but it is ok for now
+            panic!("can't parse memory usage: {}", memory);
+            0
+        }
+    }
+
+    fn cpu_millis_to_nanos(nanos: u64) -> u64 {
+        nanos * 1000000
+    }
+
+    fn cpu_micros_to_nanos(micros: u64) -> u64 {
+        micros * 1000
+    }
+
+    fn mebibyte_to_kilobyte(megabyte: u64) -> u64 {
+        megabyte * 1049 // APIs use M as n = 1000
+    }
+
+    fn megabyte_to_kilobyte(megabyte: u64) -> u64 {
+        megabyte * 1024
     }
 
     async fn pods(&self) -> Vec<KubeAPIPod> {
