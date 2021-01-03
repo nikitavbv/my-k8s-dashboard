@@ -8,19 +8,19 @@ use k8s_openapi::api::core::v1::Container as KubeAPIContainer;
 use crate::usage::{PodMetrics, pod_metrics, PodMetricsContainer};
 
 // container requests and limits and metrics
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct Namespace {
     pub name: String,
     pub pods: Vec<Pod>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct Pod {
     pub name: String,
     pub containers: Vec<Container>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct Container {
     pub name: String,
 
@@ -29,7 +29,7 @@ pub struct Container {
     pub limits: Option<ResourceMetrics>,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Serialize)]
 pub struct ResourceMetrics {
     cpu: u64,
     memory: u64,
