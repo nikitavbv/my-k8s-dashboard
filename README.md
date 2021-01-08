@@ -6,4 +6,4 @@ I am building a tool to explore resource usage, requests, limits and quotas by n
 
 I am running all my personal projects a single large Kubernetes cluster and it is getting difficult to understand resource usage/limits by project.
 
-Other dashboard are not so good at displaying these stats, so I decided to build my own :D
+Other dashboards are not so good at displaying these stats, so I decided to build my own :D
