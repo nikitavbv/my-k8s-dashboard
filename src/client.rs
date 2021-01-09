@@ -1,4 +1,4 @@
-use kube::{Resource, Api};
+use kube::Api;
 use kube::api::{ListParams, ObjectList};
 use serde::{Deserialize, Serialize};
 
