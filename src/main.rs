@@ -2,10 +2,12 @@ mod client;
 mod config;
 mod usage;
 
-use actix_web::{App, HttpServer, Responder, get, error, Error, HttpResponse};
+use actix_web::{App, HttpServer, Responder, get, error, Error, HttpResponse, http::header};
 use actix_web::web::Data;
 use serde::Serialize;
+use actix_cors::Cors;
 use tera::Tera;
+
 use crate::client::KubernetesClient;
 use crate::config::bind_address;
 
@@ -24,6 +26,13 @@ async fn main() -> std::io::Result<()> {
         let tera = Tera::new("templates/**/*").unwrap();
 
         App::new()
+            .wrap(
+                Cors::default()
+                    .allowed_origin("http://localhost:3000")
+                    .allowed_methods(vec!["GET", "POST"])
+                    .allowed_headers(vec![header::CONTENT_TYPE])
+                    .max_age(3600)
+            )
             .data(tera)
             .service(healthz)
             .service(api_namespaces)
