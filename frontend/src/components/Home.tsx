@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 
 import { Namespace } from '../types';
+import { NamespaceRow } from './NamespaceRow';
 
 type NamespacesResponse = {
     namespaces: Namespace[],
@@ -20,7 +21,7 @@ export const Home = () => {
     return (
         <React.Fragment>
             <div>Home</div>
-            { namespaces.map(namespace => (<div>namespace: {namespace.name}</div>)) }
+            { namespaces.map(namespace => (<NamespaceRow namespace={namespace}/>)) }
         </React.Fragment>
     );
 };
