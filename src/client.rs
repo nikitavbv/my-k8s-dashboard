@@ -6,6 +6,7 @@ use k8s_openapi::api::core::v1::Pod as KubeAPIPod;
 use k8s_openapi::api::core::v1::Container as KubeAPIContainer;
 
 use crate::usage::{PodMetrics, pod_metrics, PodMetricsContainer};
+use std::collections::HashSet;
 
 // container requests and limits and metrics
 #[derive(Debug, Serialize)]
@@ -55,8 +56,9 @@ impl KubernetesClient {
         let namespaces: Vec<Namespace> = resources.iter()
             .map(|v| v.metadata.namespace.clone().unwrap_or("".to_string()))
             .chain(usage.iter().map(|v| v.metadata.namespace.clone()))
+            .collect::<HashSet<String>>().iter()
             .map(|name| Namespace {
-                name,
+                name: name.clone(),
                 pods: Vec::new()
             })
             .collect();
@@ -70,7 +72,7 @@ impl KubernetesClient {
                 )
             })
             .collect();
-
+        
         namespaces
     }
 
