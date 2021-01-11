@@ -3,6 +3,7 @@ import React, {useState} from 'react';
 import { Namespace } from '../types';
 import { PodRow } from './PodRow';
 import {ChevronRight} from './icons';
+import {ChevronDown} from './icons/ChevronDown';
 
 export type NamespaceRowProps = {
     namespace: Namespace,
@@ -11,17 +12,22 @@ export type NamespaceRowProps = {
 export const NamespaceRow = (props: NamespaceRowProps) => {
     const [collapsed, setIsCollapsed] = useState<Boolean>(true);
 
+    const chevronStyle = {
+        display: 'inline',
+        cursor: 'pointer',
+        lineHeight: '20px',
+    };
+
     return (
         <div style={{
             borderTop: '1px solid rgb(224, 224, 224)',
             padding: '8px',
             userSelect: 'none',
         }}>
-            <ChevronRight onClick={() => setIsCollapsed(!collapsed)}  style={{
-                display: 'inline',
-                cursor: 'pointer',
-                lineHeight: '20px',
-            }}/>
+            { collapsed
+                ? (<ChevronRight onClick={setIsCollapsed.bind(this, false)} style={chevronStyle}/>)
+                : (<ChevronDown onClick={setIsCollapsed.bind(this, true)} style={chevronStyle} />)
+            }
             <span style={{ lineHeight: '20px' }}>
                 Namespace: { props.namespace.name }
             </span>
