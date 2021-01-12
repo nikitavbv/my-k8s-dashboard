@@ -1,5 +1,5 @@
 use kube::Api;
-use kube::api::{ListParams, ObjectList};
+use kube::api::ListParams;
 use serde::{Deserialize, Serialize};
 
 use k8s_openapi::api::core::v1::Pod as KubeAPIPod;
