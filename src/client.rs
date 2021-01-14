@@ -183,7 +183,6 @@ impl KubernetesClient {
         } else {
             // panic is bad, but it is ok for now
             panic!("can't parse cpu usage: {}", cpu);
-            0
         }
     }
 
