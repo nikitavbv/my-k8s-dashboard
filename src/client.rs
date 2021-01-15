@@ -196,7 +196,6 @@ impl KubernetesClient {
         } else {
             // panic is bad, but it is ok for now
             panic!("can't parse memory usage: {}", memory);
-            0
         }
     }
 
