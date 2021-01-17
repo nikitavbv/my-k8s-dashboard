@@ -33,6 +33,7 @@ export const NamespaceRow = (props: NamespaceRowProps) => {
             </span>
             <div style={{
                 display: collapsed ? 'none' : 'inherit',
+                paddingLeft: '20px',
             }}>
                 { props.namespace.pods.map(pod => (<PodRow pod={pod} />) )}
             </div>
