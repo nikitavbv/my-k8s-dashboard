@@ -1,7 +1,13 @@
 import React from 'react';
 
 export const Header = () => (
-    <header>
+    <header style={{
+        color: 'white',
+        backgroundColor: '#202125',
+        fontSize: '21px',
+        lineHeight: '21px',
+        padding: '6px',
+    }}>
         header
     </header>
 );
