@@ -8,7 +8,9 @@ import { Header, Home } from './components';
 const App = () => (
   <ConnectedRouter history={history}>
     <Header />
-    <main>
+    <main style={{
+        padding: '8px'
+    }}>
       <Switch>
         <Route exact path='/' component={Home} />
       </Switch>
