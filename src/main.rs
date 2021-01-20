@@ -1,6 +1,7 @@
 mod client;
 mod config;
 mod usage;
+mod monitoring;
 
 use actix_web::{App, HttpServer, Responder, get, error, Error, HttpResponse, http::header};
 use actix_web::web::Data;
@@ -10,6 +11,7 @@ use tera::Tera;
 
 use crate::client::KubernetesClient;
 use crate::config::bind_address;
+use crate::monitoring::start_monitoring;
 
 #[derive(Serialize)]
 struct NamespacesResponse {
@@ -21,6 +23,8 @@ async fn main() -> std::io::Result<()> {
     env_logger::init();
 
     println!("Kubernetes dashboard started");
+
+    start_monitoring();
 
     HttpServer::new(|| {
         let tera = Tera::new("templates/**/*").unwrap();
