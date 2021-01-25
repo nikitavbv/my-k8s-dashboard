@@ -7,8 +7,8 @@ export const Header = () => (
         fontSize: '21px',
         fontFamily: 'Open Sans',
         lineHeight: '21px',
-        padding: '6px',
+        padding: '8px 6px 8px 32px',
     }}>
-        header
+        Kubernetes Dashboard
     </header>
 );

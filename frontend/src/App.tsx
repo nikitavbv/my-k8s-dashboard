@@ -9,7 +9,7 @@ const App = () => (
   <ConnectedRouter history={history}>
     <Header />
     <main style={{
-        padding: '8px'
+        padding: '32px'
     }}>
       <Switch>
         <Route exact path='/' component={Home} />
