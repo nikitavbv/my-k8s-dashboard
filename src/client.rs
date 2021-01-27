@@ -32,8 +32,8 @@ pub struct Container {
 
 #[derive(Debug, Serialize)]
 pub struct ResourceMetrics {
-    cpu: u64,
-    memory: u64,
+    pub cpu: u64,
+    pub memory: u64,
 }
 
 // kube client

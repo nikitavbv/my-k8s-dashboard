@@ -1539,6 +1539,7 @@ dependencies = [
  "kube",
  "kube-derive",
  "kube-runtime",
+ "lazy_static",
  "openssl",
  "schemars",
  "serde",
