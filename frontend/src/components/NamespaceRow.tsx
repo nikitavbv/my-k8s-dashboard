@@ -10,7 +10,7 @@ export type NamespaceRowProps = {
 
 export const NamespaceRow = (props: NamespaceRowProps) => {
     return (
-        <Collapsible category='Namespace' name={props.namespace.name}>
+        <Collapsible category='Namespace' name={props.namespace.name} level={0}>
             { props.namespace.pods.map(pod => (<PodRow pod={pod} />) )}
         </Collapsible>
     );

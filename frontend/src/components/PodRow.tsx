@@ -10,7 +10,7 @@ type PodRowProps = {
 
 export const PodRow = (props: PodRowProps) => {
     return (
-        <Collapsible category='Pod' name={props.pod.name}>
+        <Collapsible category='Pod' name={props.pod.name} level={1}>
             { props.pod.containers.map(container => (<ContainerRow container={container} />)) }
         </Collapsible>
     );
