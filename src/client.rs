@@ -101,9 +101,11 @@ impl KubernetesClient {
             .map(|v| v.clone())
             .collect();
 
-        let pods = resources.iter()
-            .filter_map(|v| v.metadata.name.clone())
+        let names: HashSet<String> = resources.iter().filter_map(|v| v.metadata.name.clone())
             .chain(usage.iter().map(|v| v.metadata.name.clone()))
+            .collect();
+
+        let pods = names.iter()
             .map(|name| Pod {
                 name: name.clone(),
                 containers: Self::combine_container_resources_and_usage(
@@ -131,20 +133,22 @@ impl KubernetesClient {
     }
 
     fn combine_container_resources_and_usage(resources: &Vec<KubeAPIContainer>, usage: &Vec<PodMetricsContainer>) -> Vec<Container> {
-        let containers = resources.iter()
-            .map(|v| v.name.clone())
+        let names: HashSet<String> = resources.iter().map(|v| v.name.clone())
             .chain(usage.iter().map(|v| v.name.clone()))
+            .collect();
+
+        let containers = names.iter()
             .map(|name| Container {
                 name: name.clone(),
                 usage: usage.iter()
-                    .filter(|v| v.name == name)
+                    .filter(|v| v.name.eq(name))
                     .map(|v| ResourceMetrics {
                         cpu: Self::parse_cpu_usage(&v.usage.cpu),
                         memory: Self::parse_memory_usage(&v.usage.memory),
                     })
                     .next(),
                 requests: resources.iter()
-                    .filter(|v| v.name == name)
+                    .filter(|v| v.name.eq(name))
                     .map(|v| v.resources.clone())
                     .next()
                     .flatten()
@@ -155,7 +159,7 @@ impl KubernetesClient {
                         memory: v.get("memory").map(|v| Self::parse_memory_usage(&v.0)).unwrap_or(0),
                     }),
                 limits: resources.iter()
-                    .filter(|v| v.name == name)
+                    .filter(|v| v.name.eq(name))
                     .map(|v| v.resources.clone())
                     .next()
                     .flatten()
@@ -173,7 +177,7 @@ impl KubernetesClient {
 
     fn parse_cpu_usage(cpu: &str) -> u64 {
         if cpu == "0" {
-            return 0
+            0
         } else if cpu.ends_with("n") {
             cpu.replace("n", "").parse().expect("failed to parse cpu usage in nanocpus")
         } else if cpu.ends_with("u") {
@@ -187,7 +191,9 @@ impl KubernetesClient {
     }
 
     fn parse_memory_usage(memory: &str) -> u64 {
-        if memory.ends_with("Ki") {
+        if memory == "0" {
+            0
+        } else if memory.ends_with("Ki") {
             memory.replace("Ki", "").parse().expect("failed to parse memory in Ki")
         } else if memory.ends_with("M") {
             Self::mebibyte_to_kilobyte(memory.replace("M", "").parse().expect("failed to parse memory in M"))
@@ -217,7 +223,12 @@ impl KubernetesClient {
 
     async fn pods(&self) -> Vec<KubeAPIPod> {
         let pod_api: Api<KubeAPIPod> = Api::all(self.client.clone());
-        pod_api.list(&ListParams::default()).await.unwrap().items
+        pod_api.list(&ListParams::default()).await.unwrap().items.iter()
+            .filter(|v|
+                v.status.is_some() && (&v.status).as_ref().unwrap().container_statuses.is_some() &&
+                    v.status.as_ref().unwrap().container_statuses.as_ref().unwrap().iter().any(|v|
+                        v.state.is_some() && v.state.as_ref().unwrap().running.is_some())
+            ).map(|v| v.clone()).collect()
     }
 
     async fn container_metrics(&self) -> Vec<PodMetrics> {
