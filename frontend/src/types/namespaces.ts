@@ -19,3 +19,9 @@ export type Resources = {
     cpu: number, // nanocpus
     memory: number, // kilobytes
 };
+
+export type Stats = {
+    usage: Resources,
+    requests: Resources,
+    limits: Resources,
+};
