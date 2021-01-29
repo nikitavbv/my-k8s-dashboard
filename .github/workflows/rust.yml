@@ -1,0 +1,41 @@
+name: Rust
+
+on: [push]
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    container:
+      image: rust:latest
+    steps:
+      - uses: actions/checkout@v1
+      - name: Cache deps
+        uses: actions/cache@v2
+        env:
+          cache-name: cache-deps
+        with:
+          path: |
+            ~/.cargo
+            target
+          key: ${{ runner.os }}-build-${{ env.cache-name }}-${{ hashFiles('**/Cargo.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-build-${{ env.cache-name }}-
+            ${{ runner.os }}-build-
+            ${{ runner.os }}-
+      - name: Build
+        run: cargo build --release
+      - name: Publish docker image to Github Packages
+        uses: HurricanKai/Publish-Docker-Github-Action@master
+        with:
+          name: docker.pkg.github.com/nikitavbv/my-k8s-dashboard/my-k8s-dashboard
+          registry: docker.pkg.github.com
+          username: ${{ secrets.GITHUB_TOKEN }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Publish docker image to Docker Hub
+        uses: elgohr/Publish-Docker-Github-Action@master
+        with:
+          name: nikitavbv/my-k8s-dashboard
+          registry: docker.io
+          username: nikitavbv
+          password: ${{ secrets.docker_hub_token }}
+          tags: "latest,0.1.0"
