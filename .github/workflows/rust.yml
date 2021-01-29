@@ -24,6 +24,14 @@ jobs:
             ${{ runner.os }}-
       - name: Build
         run: cargo build --release
+      - name: install frontend deps
+        uses: borales/actions-yarn@v2.0.0
+        with:
+          cmd: install
+      - name: build frontend
+        uses: borales/actions-yarn@v2.0.0
+        with:
+          cmd: build
       - name: Publish docker image to Github Packages
         uses: HurricanKai/Publish-Docker-Github-Action@master
         with:
