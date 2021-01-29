@@ -3,18 +3,19 @@ use std::collections::HashMap;
 use std::sync::Mutex;
 
 use actix_rt::{spawn, time};
+use serde::Serialize;
 
 use crate::client::KubernetesClient;
 
-#[derive(Copy, Clone)]
-struct MonitoringEntry {
-    total_cpu: u128,
-    total_memory: u128,
+#[derive(Copy, Clone, Serialize)]
+pub struct MonitoringEntry {
+    pub total_cpu: u128,
+    pub total_memory: u128,
 
-    prev_cpu: u64,
-    prev_memory: u64,
+    pub prev_cpu: u64,
+    pub prev_memory: u64,
 
-    updated_at: u64,
+    pub updated_at: u64,
 }
 
 lazy_static! {
@@ -77,4 +78,9 @@ async fn run_monitoring_iteration() {
 
 fn make_monitoring_data_key(namespace_name: &str, pod_name: &str, container_name: &str) -> String {
     format!("{}/{}/{}", namespace_name, pod_name, container_name)
+}
+
+pub fn monitoring_data(namespace_name: &str, pod_name: &str, container_name: &str) -> Option<MonitoringEntry> {
+    MONITORING_DATA.lock().unwrap().get(&make_monitoring_data_key(namespace_name, pod_name, container_name))
+        .map(|v| v.clone())
 }

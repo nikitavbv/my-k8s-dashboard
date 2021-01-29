@@ -14,11 +14,34 @@ use tera::Tera;
 
 use crate::client::KubernetesClient;
 use crate::config::bind_address;
-use crate::monitoring::start_monitoring;
+use crate::monitoring::{start_monitoring, MonitoringEntry, monitoring_data};
 
 #[derive(Serialize)]
 struct NamespacesResponse {
-    namespaces: Vec<client::Namespace>
+    namespaces: Vec<NamespaceResponse>,
+}
+
+#[derive(Serialize)]
+struct NamespaceResponse {
+    name: String,
+    pods: Vec<PodResponse>,
+}
+
+#[derive(Serialize)]
+struct PodResponse {
+    name: String,
+    containers: Vec<ContainerResponse>,
+}
+
+#[derive(Serialize)]
+struct ContainerResponse {
+    name: String,
+
+    usage: Option<client::ResourceMetrics>,
+    requests: Option<client::ResourceMetrics>,
+    limits: Option<client::ResourceMetrics>,
+
+    total_resources: Option<MonitoringEntry>,
 }
 
 #[actix_rt::main]
@@ -58,8 +81,34 @@ async fn healthz() -> impl Responder {
 #[get("/api/v1/namespaces")]
 async fn api_namespaces() -> impl Responder {
     HttpResponse::Ok().json(NamespacesResponse {
-        namespaces: KubernetesClient::new().await.container_resources().await
+        namespaces: KubernetesClient::new().await.container_resources().await.iter()
+            .map(|c| to_namespace_response(&c))
+            .collect()
     })
+}
+
+fn to_namespace_response(namespace: &client::Namespace) -> NamespaceResponse {
+    NamespaceResponse {
+        name: namespace.name.clone(),
+        pods: namespace.pods.iter().map(|v| to_pod_response(&namespace.name, &v)).collect()
+    }
+}
+
+fn to_pod_response(namespace_name: &str, pod: &client::Pod) -> PodResponse {
+    PodResponse {
+        name: pod.name.clone(),
+        containers: pod.containers.iter().map(|v| to_container_response(&namespace_name, &pod.name, &v)).collect()
+    }
+}
+
+fn to_container_response(namespace_name: &str, pod_name: &str, container: &client::Container) -> ContainerResponse {
+    ContainerResponse {
+        name: container.name.clone(),
+        usage: container.usage.clone(),
+        requests: container.requests.clone(),
+        limits: container.limits.clone(),
+        total_resources: monitoring_data(&namespace_name, &pod_name, &container.name)
+    }
 }
 
 #[get("/")]

@@ -9,19 +9,19 @@ use crate::usage::{PodMetrics, pod_metrics, PodMetricsContainer};
 use std::collections::HashSet;
 
 // container requests and limits and metrics
-#[derive(Debug, Serialize)]
+#[derive(Clone, Debug, Serialize)]
 pub struct Namespace {
     pub name: String,
     pub pods: Vec<Pod>,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Clone, Debug, Serialize)]
 pub struct Pod {
     pub name: String,
     pub containers: Vec<Container>,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Clone, Debug, Serialize)]
 pub struct Container {
     pub name: String,
 
@@ -30,7 +30,7 @@ pub struct Container {
     pub limits: Option<ResourceMetrics>,
 }
 
-#[derive(Debug, Serialize)]
+#[derive(Clone, Debug, Serialize)]
 pub struct ResourceMetrics {
     pub cpu: u64,
     pub memory: u64,
