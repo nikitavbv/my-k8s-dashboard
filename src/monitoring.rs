@@ -1,6 +1,3 @@
-#[macro_use]
-extern crate lazy_static;
-
 use std::time::{Duration, SystemTime, UNIX_EPOCH};
 use std::collections::HashMap;
 use std::sync::Mutex;
@@ -9,6 +6,7 @@ use actix_rt::{spawn, time};
 
 use crate::client::KubernetesClient;
 
+#[derive(Copy, Clone)]
 struct MonitoringEntry {
     total_cpu: u128,
     total_memory: u128,
@@ -20,7 +18,7 @@ struct MonitoringEntry {
 }
 
 lazy_static! {
-    static ref monitoring_data: Mutex<HashMap<String, MonitoringEntry>> = Mutex::new(HashMap::new());
+    static ref MONITORING_DATA: Mutex<HashMap<String, MonitoringEntry>> = Mutex::new(HashMap::new());
 }
 
 pub fn start_monitoring() {
@@ -42,7 +40,7 @@ async fn run_monitoring_iteration() {
     let updated_at = SystemTime::now().duration_since(UNIX_EPOCH).unwrap().as_secs();
     let resources = KubernetesClient::new().await.container_resources().await;
 
-    let monitoring_data = monitoring_data.lock().unwrap();
+    let mut monitoring_stats = MONITORING_DATA.lock().unwrap();
     for namespace in resources {
         for pod in namespace.pods {
             for container in pod.containers {
@@ -53,24 +51,25 @@ async fn run_monitoring_iteration() {
                 let key = make_monitoring_data_key(&namespace.name, &pod.name, &container.name);
                 let usage = container.usage.unwrap();
 
-                let monitoring_entry: Option<MonitoringEntry> = monitoring_data.get(&key);
+                let monitoring_entry: Option<MonitoringEntry> = monitoring_stats.get(&key).map(|v| v.clone());
 
-                let cpu_usage = monitoring_entry.map(|v| (container.usage.cpu + v.prev_cpu) * (updated_at - v.updated_at) / 2);
-                let memory_usage = monitoring_entry.map(|v| (container.usage.memory + v.prev_memory) * (updated_at - v.updated_at) / 2);
+                let cpu_usage = monitoring_entry.map(|v| (usage.cpu + v.prev_cpu) * (updated_at - v.updated_at) / 2).unwrap_or(0) as u128;
+                let memory_usage = monitoring_entry.map(|v| (usage.memory + v.prev_memory) * (updated_at - v.updated_at) / 2).unwrap_or(0) as u128;
 
                 let total_cpu = monitoring_entry.map(|v| v.total_cpu).unwrap_or(0) + cpu_usage;
-                let total_memory = monitoring_entry.get(&key).map(|v| v.total_memory).umwrap_or(0) + memory_usage;
+                let total_memory = monitoring_entry.map(|v| v.total_memory).unwrap_or(0) + memory_usage;
 
                 let entry = MonitoringEntry {
                     total_cpu,
                     total_memory,
 
-                    prev_cpu: container.usage.cpu,
-                    prev_memory: container.usage.memory,
+                    prev_cpu: usage.cpu,
+                    prev_memory: usage.memory,
 
                     updated_at
                 };
-                monitoring_data.insert(&key, entry);
+
+                monitoring_stats.insert(key, entry);
             }
         }
     }
