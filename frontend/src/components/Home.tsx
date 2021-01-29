@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 
 import { Namespace } from '../types';
 import { NamespaceRow } from './NamespaceRow';
+import {compareNamespaces} from '../utils';
 
 type NamespacesResponse = {
     namespaces: Namespace[],
@@ -57,7 +58,7 @@ export const Home = () => {
                 { column100('cpu') }
                 { column100('memory') }
             </div>
-            { namespaces.map((namespace, i) => (<NamespaceRow namespace={namespace}/>)) }
+            { namespaces.sort(compareNamespaces).map((namespace, i) => (<NamespaceRow namespace={namespace}/>)) }
         </React.Fragment>
     );
 };

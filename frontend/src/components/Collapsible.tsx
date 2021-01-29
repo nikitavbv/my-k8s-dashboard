@@ -2,7 +2,7 @@ import React, {useState} from 'react';
 
 import {ChevronRight, ChevronDown} from './icons';
 import {Stats} from '../types';
-import {formatCPUNanos, formatMemoryKilobytes} from '../utils';
+import {formatCPUNanos, formatCPUNanosSeconds, formatMemoryKilobytes, formatMemoryKilobytesSeconds} from '../utils';
 
 export type CollapsibleProps = {
     category: string,
@@ -55,8 +55,8 @@ export const Collapsible = (props: CollapsibleProps) => {
                 { column(formatMemoryKilobytes(props.stats.requests?.memory || 0)) }
                 { column(formatCPUNanos(props.stats.limits?.cpu || 0)) }
                 { column(formatMemoryKilobytes(props.stats.limits?.memory || 0)) }
-                { column('todo') }
-                { column('todo') }
+                { column(formatCPUNanosSeconds(props.stats.total_resources?.total_cpu || 0)) }
+                { column(formatMemoryKilobytesSeconds(props.stats.total_resources?.total_memory || 0)) }
             </span>
             <div style={{
                 display: collapsed ? 'none' : 'inherit',
