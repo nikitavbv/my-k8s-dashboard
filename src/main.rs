@@ -18,6 +18,7 @@ use crate::monitoring::{start_monitoring, MonitoringEntry, monitoring_data};
 
 #[derive(Serialize)]
 struct NamespacesResponse {
+    notifications: Vec<String>,
     namespaces: Vec<NamespaceResponse>,
 }
 
@@ -81,6 +82,7 @@ async fn healthz() -> impl Responder {
 #[get("/api/v1/namespaces")]
 async fn api_namespaces() -> impl Responder {
     HttpResponse::Ok().json(NamespacesResponse {
+        notifications: Vec::new(),
         namespaces: KubernetesClient::new().await.container_resources().await.iter()
             .map(|c| to_namespace_response(&c))
             .collect()
