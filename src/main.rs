@@ -112,13 +112,3 @@ fn to_container_response(namespace_name: &str, pod_name: &str, container: &clien
         total_resources: monitoring_data(&namespace_name, &pod_name, &container.name)
     }
 }
-
-#[get("/")]
-async fn dashboard_index(tera: Data<Tera>) -> Result<HttpResponse, Error> {
-    let mut ctx = tera::Context::new();
-    ctx.insert("namespaces", "Nikita");
-
-    tera.render("index.html", &ctx)
-        .map(|v| HttpResponse::Ok().body(v))
-        .map_err(|_| error::ErrorInternalServerError("templating_error"))
-}
