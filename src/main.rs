@@ -10,7 +10,6 @@ use actix_web::{App, HttpServer, Responder, get, error, Error, HttpResponse, htt
 use actix_web::web::Data;
 use serde::Serialize;
 use actix_cors::Cors;
-use tera::Tera;
 
 use crate::client::KubernetesClient;
 use crate::config::bind_address;
@@ -67,7 +66,6 @@ async fn main() -> std::io::Result<()> {
             .data(tera)
             .service(healthz)
             .service(api_namespaces)
-            .service(dashboard_index)
     })
         .bind(bind_address())?
         .run()
