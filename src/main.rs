@@ -53,8 +53,6 @@ async fn main() -> std::io::Result<()> {
     start_monitoring();
 
     HttpServer::new(|| {
-        let tera = Tera::new("templates/**/*").unwrap();
-
         App::new()
             .wrap(
                 Cors::default()
@@ -63,7 +61,6 @@ async fn main() -> std::io::Result<()> {
                     .allowed_headers(vec![header::CONTENT_TYPE])
                     .max_age(3600)
             )
-            .data(tera)
             .service(healthz)
             .service(api_namespaces)
     })
