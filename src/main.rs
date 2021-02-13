@@ -11,7 +11,7 @@ use actix_web::web::Data;
 use serde::Serialize;
 use actix_cors::Cors;
 
-use crate::client::KubernetesClient;
+use crate::client::{KubernetesClient, Container};
 use crate::config::bind_address;
 use crate::monitoring::{start_monitoring, MonitoringEntry, monitoring_data};
 
@@ -76,6 +76,14 @@ async fn healthz() -> impl Responder {
 
 #[get("/api/v1/namespaces")]
 async fn api_namespaces() -> impl Responder {
+    let containers_without_limits: Vec<Container> = KubernetesClient::new().await.container_resources().await.iter()
+        .flat_map(|v| v.pods.clone())
+        .flat_map(|v| v.containers.clone())
+        .filter(|v| v.limits.is_none())
+        .collect();
+
+    println!("containers without limits: {:?}", &containers_without_limits);
+
     HttpResponse::Ok().json(NamespacesResponse {
         notifications: Vec::new(),
         namespaces: KubernetesClient::new().await.container_resources().await.iter()
