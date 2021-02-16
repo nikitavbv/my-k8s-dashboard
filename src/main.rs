@@ -88,7 +88,7 @@ async fn api_namespaces() -> impl Responder {
     println!("containers without limits: {:?}", &containers_without_limits);
 
     let notifications = containers_without_limits.iter()
-        .map(|v| forat!("There is a container without a limit set: {}", v.name))
+        .map(|v| format!("There is a container without a limit set: {}", v.name))
         .collect();
 
     HttpResponse::Ok().json(NamespacesResponse {
