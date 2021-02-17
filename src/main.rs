@@ -7,7 +7,6 @@ mod usage;
 mod monitoring;
 
 use actix_web::{App, HttpServer, Responder, get, error, Error, HttpResponse, http::header};
-use actix_web::web::Data;
 use serde::Serialize;
 use actix_cors::Cors;
 
