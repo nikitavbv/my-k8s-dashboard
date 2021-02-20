@@ -2,7 +2,7 @@ use std::time::{Duration, SystemTime, UNIX_EPOCH};
 use std::collections::HashMap;
 use std::sync::Mutex;
 
-use actix_rt::{spawn, time};
+use actix_web::rt::{spawn, time};
 use serde::Serialize;
 
 use crate::client::KubernetesClient;
