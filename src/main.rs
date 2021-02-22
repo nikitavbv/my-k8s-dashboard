@@ -62,6 +62,7 @@ async fn main() -> std::io::Result<()> {
             )
             .service(healthz)
             .service(api_namespaces)
+            .service(fs::Files::new("/", "./frontend"))
     })
         .bind(bind_address())?
         .run()
