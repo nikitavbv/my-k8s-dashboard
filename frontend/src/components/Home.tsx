@@ -23,7 +23,7 @@ export const Home = () => {
     const column200 = column(200, 600);
 
     useEffect(() => {
-        fetch('http://localhost:8080/api/v1/namespaces')
+        fetch('/api/v1/namespaces')
             .then(r => r.json() as unknown as NamespacesResponse)
             .then(r => setNamespaces(r.namespaces));
     }, []);
