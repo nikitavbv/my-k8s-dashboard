@@ -63,6 +63,7 @@ async fn main() -> std::io::Result<()> {
             )
             .service(healthz)
             .service(api_namespaces)
+            .service(frontend_root)
             .service(fs::Files::new("/", "./frontend/build"))
     })
         .bind(bind_address())?
@@ -98,6 +99,11 @@ async fn api_namespaces() -> impl Responder {
             .map(|c| to_namespace_response(&c))
             .collect()
     })
+}
+
+#[get("/")]
+async fn frontend_root() -> Result<NamedFile> {
+    Ok(NamedFile::open("./frontend/build/index.html")?)
 }
 
 fn to_namespace_response(namespace: &client::Namespace) -> NamespaceResponse {
