@@ -103,7 +103,7 @@ async fn api_namespaces() -> impl Responder {
 }
 
 #[get("/")]
-async fn frontend_root() -> Result<NamedFile> {
+async fn frontend_root() -> std::io::Result<NamedFile> {
     Ok(NamedFile::open("./frontend/build/index.html")?)
 }
 
