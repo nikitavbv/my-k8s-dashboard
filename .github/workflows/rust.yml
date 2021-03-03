@@ -26,6 +26,8 @@ jobs:
           toolchain: stable
           default: true
           override: true
+      - name: Test
+        run: cargo test
       - name: Build
         run: cargo build --release
       - uses: actions/setup-node@v2
