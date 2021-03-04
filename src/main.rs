@@ -10,7 +10,6 @@ use actix_web::{App, HttpServer, Responder, get, HttpResponse, http::header};
 use actix_files as fs;
 use actix_files::{NamedFile};
 use serde::Serialize;
-use actix_cors::Cors;
 
 use crate::client::{KubernetesClient, Container};
 use crate::config::bind_address;
@@ -55,13 +54,6 @@ async fn main() -> std::io::Result<()> {
 
     HttpServer::new(|| {
         App::new()
-            .wrap(
-                Cors::default()
-                    .allowed_origin("http://localhost:3000")
-                    .allowed_methods(vec!["GET", "POST"])
-                    .allowed_headers(vec![header::CONTENT_TYPE])
-                    .max_age(3600)
-            )
             .service(healthz)
             .service(api_namespaces)
             .service(frontend_root)
