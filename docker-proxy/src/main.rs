@@ -1,10 +1,13 @@
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
+use std::fs::File;
 use thrussh::CryptoVec;
 use thrussh::{ChannelId, server, server::{Auth, Session}};
+use thrussh_keys::encode_pkcs8_pem;
 use futures::Future;
 use log::*;
 use env_logger::Env;
+use thrussh_keys::pkcs8::encode_pkcs8;
 
 /**
 I can debug responses using curl:
@@ -18,6 +21,11 @@ async fn main() {
 
     let client_key = thrussh_keys::key::KeyPair::generate_ed25519().unwrap();
     let client_pubkey = Arc::new(client_key.clone_public_key());
+
+    let client_file = File::create(".server_key").unwrap();
+    encode_pkcs8_pem(&client_key, &client_file).unwrap();
+
+
     let mut config = thrussh::server::Config::default();
     // For some reason it takes connection_timeout for client to connect
     config.connection_timeout = Some(std::time::Duration::from_secs(10));
@@ -134,4 +142,4 @@ impl server::Handler for Server {
         info!("got tcpip forward");
         futures::future::ready(Ok((self, session, true)))
     }
-}
+} 
