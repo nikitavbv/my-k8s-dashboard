@@ -1,13 +1,15 @@
 use std::collections::HashMap;
 use std::sync::{Arc, Mutex};
-use std::fs::File;
+use std::fs::{File, read};
+use std::path::Path;
 use thrussh::CryptoVec;
 use thrussh::{ChannelId, server, server::{Auth, Session}};
-use thrussh_keys::encode_pkcs8_pem;
-use futures::Future;
+use thrussh_keys::{encode_pkcs8_pem, decode_secret_key};
 use log::*;
 use env_logger::Env;
-use thrussh_keys::pkcs8::encode_pkcs8;
+use thrussh_keys::key::KeyPair;
+
+const SERVER_PEM_FILE: &str = ".server_key.pem";
 
 /**
 I can debug responses using curl:
@@ -19,12 +21,8 @@ async fn main() {
     env_logger::Builder::from_env(Env::default().default_filter_or("info")).init();
     info!("Hello, docker proxy!");
 
-    let client_key = thrussh_keys::key::KeyPair::generate_ed25519().unwrap();
+    let client_key = get_keypair();
     let client_pubkey = Arc::new(client_key.clone_public_key());
-
-    let client_file = File::create(".server_key").unwrap();
-    encode_pkcs8_pem(&client_key, &client_file).unwrap();
-
 
     let mut config = thrussh::server::Config::default();
     // For some reason it takes connection_timeout for client to connect
@@ -39,6 +37,20 @@ async fn main() {
     };
 
     thrussh::server::run(config, "0.0.0.0:2222", sh).await.unwrap();
+}
+
+fn get_keypair() -> KeyPair {
+    let path = Path::new(SERVER_PEM_FILE);
+    if path.exists() {
+        info!("loading secret key from file");
+        read(path).map(|v| decode_secret_key(&String::from_utf8_lossy(&v), None).unwrap()).unwrap()
+    } else {
+        info!("generating new secret key");
+        let keypair = thrussh_keys::key::KeyPair::generate_ed25519().unwrap();
+        let client_file = File::create(path).unwrap();
+        encode_pkcs8_pem(&keypair, &client_file).unwrap();
+        keypair
+    }
 }
 
 #[derive(Clone)]
