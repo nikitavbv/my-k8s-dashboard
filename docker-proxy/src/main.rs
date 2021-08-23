@@ -22,16 +22,14 @@ async fn main() {
     info!("Hello, docker proxy!");
 
     let client_key = get_keypair();
-    let client_pubkey = Arc::new(client_key.clone_public_key());
 
     let mut config = thrussh::server::Config::default();
     // For some reason it takes connection_timeout for client to connect
     config.connection_timeout = Some(std::time::Duration::from_secs(10));
     config.auth_rejection_time = std::time::Duration::from_secs(30);
-    config.keys.push(thrussh_keys::key::KeyPair::generate_ed25519().unwrap());
+    config.keys.push(client_key);
     let config = Arc::new(config);
     let sh = Server {
-        client_pubkey,
         clients: Arc::new(Mutex::new(HashMap::new())),
         id: 0,
     };
@@ -55,7 +53,6 @@ fn get_keypair() -> KeyPair {
 
 #[derive(Clone)]
 struct Server {
-    client_pubkey: Arc<thrussh_keys::key::PublicKey>,
     clients: Arc<Mutex<HashMap<(usize, ChannelId), thrussh::server::Handle>>>,
     id: usize,
 }
